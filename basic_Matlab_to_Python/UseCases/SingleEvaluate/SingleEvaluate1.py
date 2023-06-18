@@ -4,16 +4,10 @@
 """
 import os
 import sys
-import roboticstoolbox as rtb
 
-from basic_Matlab_to_Python.functions.basic_functions.BuildRobot import BuildRobot
 from basic_Matlab_to_Python.functions.basic_functions.BuildOneRobot import BuildOneRobot
 from basic_Matlab_to_Python.functions.extend_functions.global_one_robot import global_one_robot
-from pathlib import Path
 
-from math import pi
-import numpy as np
-from roboticstoolbox import DHRobot, RevoluteDH, PrismaticDH, RevoluteMDH, PrismaticMDH
 
 
 
@@ -27,7 +21,6 @@ sys.path.append(current_folder)
 
 
 # 1) Example for loading an existing robot data for evaluation
-
 Flag = 1
 # Use Default Parameters in script mode
 Parameters = {
