@@ -13,125 +13,118 @@
 % Calculate local indices distribution map
 %
 % Example:'''
-import numpy as np
-from roboticstoolbox import SerialLink
+import ctypes
+import os
+
 from basic_Matlab_to_Python.functions.basic_functions.Dynamic_M import dynamic_M
 from basic_Matlab_to_Python.functions.basic_functions.local_indice_map import local_indice_map
 from basic_Matlab_to_Python.functions.basic_functions.Joint_Limitation import joint_limitation
 from basic_Matlab_to_Python.functions.basic_functions.Local_Evaluation import local_evaluation
+import numpy as np
+from roboticstoolbox import ERobot
+from scipy.spatial import qhull,ConvexHull
 
 
-
-def reachable_ws_indices(robot, qs, joint_flag, path='', indices=None, evaluate='Off'):
-    count, _ = qs.shape
-    mid_point = np.zeros((count, 3))
+def reachable_ws_indices(Robot, QS, Joint_Flag, **kwargs):
+    Count, _ = QS.shape
+    Mid_Point = np.zeros((Count, 3))
 
     # Transfer Indice Name to Array Number
-    r = np.zeros(count)
+    R = np.zeros((Count, 1))
 
-    opt_save = ['Save', 'UnSave']
-    opt_evaluate = ['On', 'Off']
-    opt = {'save': 'UnSave', 'evaluate': 'Off', 'indice': [], 'path': ''}
 
-    if indices is not None:
-        opt['indice'] = indices
+    opt = {
+        'save': 'Save',
+        'evaluate': 'On',
+        #'volume':['Common','Operating'],
+        'indices': None,
+        'path': None
+    }
+    opt.update(kwargs)
 
-    opt['save'] = opt_save[0] if opt['save'] == 'Save' else opt_save[1]
-    opt['evaluate'] = opt_evaluate[0] if opt['evaluate'] == 'On' else opt_evaluate[1]
+    print(opt['indices'])
 
-    if path == '':
+    if opt['path'] is None:
         filename = 'LocalIndice_Map'
-        path = './Data/LocalIndice_Map'
+        path = '../Data_Dex/LocalIndice_Map'
     else:
-        filename = path
-        path = f'./Data/{filename}{count}'
+        filename = opt['path']
+        path = f"./Data_Dex/{filename}{Count}"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    if not opt['indice']:
-        num_array = np.linspace(4, 6, 3)
-        cal_index = 3
+    if opt['indices'] is None:
+        Num_Array = np.linspace(4, 6, 3)
+        Cal_Index = 3
+        Dex = np.array([[0.0] * Cal_Index for _ in range(Count)])
     else:
-        indice_group = opt['indice']
-        print(indice_group)
-        num_array = local_indice_map(indice_group)
-        cal_index = num_array.shape[1]
-        dex = np.zeros((count, cal_index))
+        Indice_Group = opt['indices']
+        Num_Array = local_indice_map(Indice_Group)
+        Cal_Index = np.array(Num_Array).shape[0]
+        Dex = np.zeros((Count, Cal_Index))
 
     m = 0
     M = 0
 
-    # Joint Limitation Information
-    q = robot.qlim
-    n_dof, _ = q.shape
-    qupl = q[:, 1]
-    qdownl = q[:, 0]
+    Q = Robot.qlim
+    N_DoF, _ = Q.shape
+    QUpL = Q[:, 1]
+    QDownL = Q[:, 0]
+    qUp = QUpL.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    qDown = QDownL.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
 
-    switcher = {
-        'Off': lambda x: robot.fkine(x).T,
-        'On': lambda x: robot.fkine(x)
-    }
+    if opt['evaluate'] == 'Off':
+        for i in range(Count):
+            TQS = Robot.fkine(QS[i])
+            TQS=np.array(TQS)
+            TQS = TQS.T
+            Dex[i,0] = TQS[0,3]
+            Dex[i,1] = TQS[1,3]
+            Dex[i,2] = TQS[2,3]
+    elif opt['evaluate'] == 'On':
+        for i in range(Count):
+            All_T = Robot.fkine(QS[i,:])
+            All_T=np.array(All_T)
+            print(All_T)
+            print(All_T[0,3])
+            Mid_Point[i,0] = All_T[0,3]
+            Mid_Point[i,1] = All_T[1,3]
+            Mid_Point[i,2] = All_T[2,3]
+            qPtr = QS[i].ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+            if Joint_Flag == 1:
+                R[i,0] = joint_limitation(qPtr, qUp, qDown, N_DoF)
+            else:
+                R[i,0] = 1
+            TQS = All_T
+            Dex[i,0] = TQS[0,3]
+            Dex[i,1] = TQS[1,3]
+            Dex[i,2] = TQS[2,3]
+            Y = ERobot.jacobe(Robot,QS[i])
+            for K in range(Cal_Index):
+                Evaluation = Indice_Group[K]
+                #print(Num_Array[0],Indice_Group[0])
+                Dex[i ,K] = local_evaluation(Indice_Group[K], N_DoF, Y, m, M, R[i, 0])
+                if Evaluation.startswith('Dynamic'):
+                    M = ERobot.inertia(Robot, QS[i])
+                    m = dynamic_M(Robot, QS[i])
 
-    for i in range(count):
-        all_t = switcher[evaluate](qs[i])
-
-        mid_point[i, 0] = all_t[0, 3]
-        mid_point[i, 1] = all_t[1, 3]
-        mid_point[i, 2] = all_t[2, 3]
-
-        if joint_flag == 1:
-            r[i] = joint_limitation(qs[i], qupl, qdownl, n_dof)
-        else:
-            r[i] = 1
-
-        tqs = all_t
-        dex[i, 0] = tqs[0, 3]
-        dex[i, 1] = tqs[1, 3]
-        dex[i, 2] = tqs[2, 3]
-
-        y = robot.jacob0(qs[i])
-
-        for k in range(cal_index):
-            evaluation = indice_group[k]
-
-            if evaluation.startswith('Dynamic'):
-                M = robot.inertia(qs[i])
-                m = dynamic_M(robot, qs[i])
-
-            dex[i, num_array[k]] = local_evaluation(evaluation, n_dof, y, m, M, r[i])
-
-    # Normalization
-    for i in range(3, cal_index):
-        max_value = np.max(dex[:, i])
-        dex[:, i] = dex[:, i] / max_value
+    #Norminization
+    _, Dex_Indice_Num = Dex.shape
+    for i in range(3, Dex_Indice_Num):
+        Max_Value = np.max(Dex[:, i])
+        Dex[:, i] /= Max_Value
 
     if opt['save'] == 'Save':
-        np.save(path, dex)
-    else:
+        np.save(path, Dex)
+    elif opt['save'] == 'UnSave':
         path = 'N'
-        out = 'UnSave'
-
-    overall_point = dex[:, 0:3]
-    data = np.concatenate((overall_point, mid_point))
-    _, o_volume = boundary(data)
-    _, volume = boundary(overall_point)
-
-    return dex, path, o_volume, volume
 
 
 
+    Overall_Point = Dex[:, 0:3]
+    Data = np.vstack((Overall_Point, Mid_Point))
 
+    # O_Volume = qhull.ConvexHull(Data).volume
+    # Volume = qhull.ConvexHull(Overall_Point).volume
 
-
-
-
-
-def boundary(data):
-    return None, None  # Placeholder for the actual implementation
-
-
-# Usage example
-# n_dof, robot = create_robot()  # Assuming the robot is created using the provided create_robot() function
-# qs = np.zeros((10, n_dof))  # Example joint configurations
-# joint_flag = 1  # Example joint flag value
-#
-# reachable_ws_indices(robot, qs, joint_flag)
-
+    return Dex, path
+           # O_Volume, Volume

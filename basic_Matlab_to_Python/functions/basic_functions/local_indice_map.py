@@ -13,26 +13,10 @@ def local_indice_map(indice_group):
     _, index_name = read_files(type='All_Indices')
     print(index_name)
     all_num = len(index_name)
-    print(all_num)
     all_index_num = list(range(4, 4 + all_num))
-    print(all_index_num)
-
     map_local_index = dict(zip(all_index_num, index_name))
-    print(map_local_index)
     map_inv_local_index = {v: k for k, v in map_local_index.items()}
-    print(map_inv_local_index)
 
-    # for i in range(num):
-    #     #新加的
-    #     indices = []
-    #     index_names = indice_group
-    #
-    #     num_array[i] = map_inv_local_index.get(indice_group[i])
-    #     if num_array[i] is None:
-    #         raise ValueError(f"Index name '{indice_group[i]}' not found in the mapping.")
-    #     print(i)
-    #
-    # print(num_array)
     num_array = []
     for element in indice_group:
         if element in index_name.values():
@@ -43,11 +27,6 @@ def local_indice_map(indice_group):
 
     return num_array
 
-
-# Usage example
-# indice_group = ['Manipulability', 'Inverse Condition Number', 'Isotropic Index']
-# num_array = local_indice_map(indice_group)
-# print(num_array)
 '''
 一个对于这个函数的测试
 index_name = {

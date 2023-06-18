@@ -4,7 +4,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 def boundary_ws(dex, value, color='off'):
     data = dex[:, :3]
+    print(data)
     hull = ConvexHull(data)
+    print(hull)
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')

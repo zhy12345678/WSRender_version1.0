@@ -3,16 +3,26 @@
 '''
 import numpy as np
 
-
 def local_evaluation(Index, N_DoF, Y, m, M, R):
     Results = 0
     U, S, V = np.linalg.svd(Y)
-    hmmi = np.sqrt(1 / np.trace(np.linalg.pinv(Y @ Y.T)))
+    Y_transpose = np.transpose(Y)
+    pinv_Y = np.linalg.pinv(Y_transpose)
+    trace_pinv_Y = np.trace(pinv_Y)
+    hmmi = np.sqrt(1 / trace_pinv_Y)
+
     SS = np.diag(S)
     J = Y[:3, :]
-    Sum_Singular = np.sqrt(np.linalg.det(J @ J.T))
 
-    H = Y @ M
+    J_transpose = np.transpose(J)
+    J_J_transpose = np.dot(J, J_transpose)
+    det_J_J_transpose = np.linalg.det(J_J_transpose)
+    Sum_Singular = np.sqrt(det_J_J_transpose)
+
+    Y = np.array(Y)  # Replace with your matrix Y
+    M = np.array(M)  # Replace with your matrix M
+    H = np.dot(Y, M)
+
     U, DS, V = np.linalg.svd(H)
     Dynamic_SS = np.diag(DS)
     Dynamic_Sum_Singular = np.sqrt(np.linalg.det(H @ H.T))

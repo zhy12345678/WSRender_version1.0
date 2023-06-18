@@ -1,11 +1,9 @@
 import numpy as np
 import scipy.io
 from roboticstoolbox import  Link, SerialLink
-import basic_Matlab_to_Python.functions as bf
 from basic_Matlab_to_Python.functions.basic_functions.Initial_Precision import initial_precision
 from basic_Matlab_to_Python.functions.basic_functions.Generate_Joint import generate_joint
 from basic_Matlab_to_Python.functions.basic_functions.reachable_ws_indices import reachable_ws_indices
-from basic_Matlab_to_Python.functions.basic_functions.Visual_Robot import visual_robot
 from basic_Matlab_to_Python.functions.basic_functions.Boundary_WS import boundary_ws
 from basic_Matlab_to_Python.functions.basic_functions.GlobalEvalution import global_evaluate
 
@@ -25,28 +23,14 @@ def global_one_robot(flag, robot, robot_type, parameters, evaluate='Off'):
     if flag == 0:
         #length_Sum, Prismatic_Num, Precision=initial_precision(robot)
         #visual_robot(robot{2},robot{2},length_Sum,'On') 这边这个有点问题robot的用法
-        qs, count = generate_joint(robot, couple_flag, joint_num=num, path=robot_type)
+        qs, count = generate_joint(robot, couple_flag, JointNum=num, Path=robot_type)
+
 
         # Robot Workspace Analysis
         #reachable workplace + Local Evaluate
-        dex, path, o_volume, volume = reachable_ws_indices(robot, qs, flag, indice=indice_group, visualize=True, path=robot_type)
-
+        #dex, path, o_volume, volume = reachable_ws_indices(robot, qs, flag, indices=indice_group, visualize=True, path=robot_type)
+        dex, path= reachable_ws_indices(robot, qs, flag, indices=indice_group, visualize=True,path=robot_type)
     if flag == 1:
-        # # Load QS data
-        # filename = robot_type
-        # folder = 'G:\\United Kindom\\毕设\\pyqt_design\\basic_Matlab_to_Python\\'
-        # path_joint = folder + 'Data\\' + filename + str(num)
-        # qs_data= scipy.io.loadmat(path_joint + '.mat')
-        # #qs = np.load(path_joint + '.mat',allow_pickle=True)
-        # qs = qs_data['variable_name']
-        # count, _ = qs.shape
-        #
-        # # Load Master Dex Data
-        # filename = robot_type
-        # path = folder + 'Data\\' + filename + str(count)
-        # dex=scipy.io.loadmat(path+ '.mat')
-        # #dex = np.load(path + '.mat',allow_pickle=True)
-
         # Load QS data
         filename = robot_type
         folder = 'G:\\United Kindom\\毕设\\pyqt_design\\basic_Matlab_to_Python\\'
