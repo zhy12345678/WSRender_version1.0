@@ -1,0 +1,13 @@
+1. 在书写的例子中indices的值的问题，本来一开始是由文件中读入的，但是为了方便我先把他改成了固定值，这个等写完部分之后要进行改进
+2. # Define the robot parameters 这个type原本我是用的dVRK但是因为我还不知道这些文件是从哪生成的所以我就改了一个文件里有的机器人类型，这个也是之后要弄懂的问题
+回答：reachable_ws_indices 是由这个函数出来的文件，path+count出来的 就是文件的名字这个函数是可以进行寻找的但是不是创建的，如果这个函数找不到对应的文件的话应该就是会报错
+3. Built Robot() 函数里的define robot还需要进行定义
+4.在matlab里面生成的.mat文件可以进行加载，但是到了python里边应该是有一个新的格式去存储robot的各种值
+5.BuiltOneRobot里面有好多个机器人的种类 但是不一定每一个的构建过程都对，测试了dVRK应该是对的
+6.当想要进行global的时候需要有两个文件一个是机器人对应的Dex，还有一个是机器人对应的QS， QS好像是获取的一些特定点的位置
+Dex: "Dex" typically refers to the dexterity or manipulability of a robot. It represents the robot's ability to achieve various poses or configurations in its workspace. The Dex matrix or distribution map provides information about the robot's performance in terms of its manipulability or dexterity at different points or configurations.
+QS: "QS" often stands for "joint configuration space" or "joint space." It represents the configuration of the robot's joints. In other words, it describes the values or positions of each joint of the robot. The QS matrix contains information about the joint angles or positions at different points or configurations.
+Both Dex and QS are important in analyzing and evaluating robotic systems. Dex helps in assessing the robot's performance, maneuverability, or workspace coverage, while QS provides information about the joint angles or positions, which is crucial for control and trajectory planning.
+It's important to note that the specific meanings and usage of "Dex" and "QS" can vary depending on the context or the specific robotic model or framework being used.
+7. 当进行一种情况下时候的基本函数改动时要注意连带作用，尽量让函数通用性更高一点
+8.
